@@ -1,6 +1,6 @@
 {
   "name": "@atomic-object/lenses",
-  "version": "0.5.0",
+  "version": "0.1.0",
   "description": "A lens library for TypeScript",
   "repository": "https://github.com/atomicobject/lenses",
   "author": "Atomic Object",
@@ -11,12 +11,19 @@
   },
   "main": "index.js",
   "devDependencies": {
+    "@types/jest": "^19.2.3",
     "jest": "^20.0.4",
+    "jsverify": "^0.8.2",
+    "ts-jest": "^20.0.4",
     "typescript": "^2.3.3"
   },
   "directories": {
     "lib": "lib"
   },
+  "files": [
+    "*.d.ts",
+    "*.js"
+  ],
   "npmFileMap": [
     {
       "basePath": "/lib/",
@@ -24,5 +31,18 @@
         "*.js"
       ]
     }
-  ]
+  ],
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "testRegex": "(/__tests__/.*|\\.(test|spec))\\.(ts|tsx)$",
+    "moduleFileExtensions": [
+      "js",
+      "jsx",
+      "ts",
+      "tsx"
+    ]
+  },
+  "dependencies": {}
 }
