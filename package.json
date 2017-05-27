@@ -1,0 +1,28 @@
+{
+  "name": "@atomic-object/lenses",
+  "version": "0.5.0",
+  "description": "A lens library for TypeScript",
+  "repository": "https://github.com/atomicobject/lenses",
+  "author": "Atomic Object",
+  "license": "MIT",
+  "typeScriptVersion": "2.3",
+  "scripts": {
+    "prepublish": "tsc"
+  },
+  "main": "index.js",
+  "devDependencies": {
+    "jest": "^20.0.4",
+    "typescript": "^2.3.3"
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "npmFileMap": [
+    {
+      "basePath": "/lib/",
+      "files": [
+        "*.js"
+      ]
+    }
+  ]
+}
