@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
+    "moduleResolution": "node",
     "target": "es5",
     "noImplicitAny": false,
     "sourceMap": true,
@@ -8,7 +9,6 @@
     "declaration": true,
     "moduleResolution": "node",
     "module": "commonjs",
-    "outDir": "."
-  },
-  "files": ["src/index.ts", "src/arrays.ts"]
+    "outDir": "lib"
+  }
 }

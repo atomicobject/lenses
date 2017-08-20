@@ -1,6 +1,7 @@
 /** Given an object, a sequence of keys, and a value, deep update that value by recursively copying. Type safe. */
+let _generalUpdater = makeUpdater();
 export const updateIn: SafeUpdate = function(o: any, ...args: any[]) {
-  return performUpdate(o, args[args.length - 1], args, 0, args.length-2);
+  return _generalUpdater(o, args[args.length - 1], args, 0, args.length-2);
 }
 
 /** Core lens shape. Used to construct Lens and can be passed to higher-order functions, such as Lens.comp */
@@ -98,11 +99,15 @@ export namespace Prism {
   export function comp<T, U1, U2, U3, V>(l1: Prismish<T, U1>, l2: Prismish<U1, U2>, l3: IPrism<U2, U3>, l4: Prismish<U3, V>): Prism<T, V>;
   export function comp<T, U1, U2, U3, U4, V>(l1: Prismish<T, U1>, l2: Prismish<U1, U2>, l3: IPrism<U2, U3>, l4: Prismish<U3, U4>, l5: Prismish<U4, V>): Prism<T, V>;
   export function comp(...prisms: Prismish<any, any>[]): Prism<any, any> {
+    let performComposedSet: any;
     return Prism.of({
-      get(o: any) {
-        return prisms.reduce((o, l) => o === undefined ? o : l.get(o), o);
-      },
-      set(o: any, v: any) {
+      get: (o: any) =>
+        prisms.reduce((o, l) => o === undefined ? o : l.get(o), o),
+      
+      set: (o: any, v: any) => {
+        if (performComposedSet === undefined) {
+          performComposedSet = makeComposedSetter();
+        }
         return performComposedSet(o, v, prisms, 0);
       }
     });
@@ -125,9 +130,7 @@ export namespace Lens {
   export function map<T, U, V>(l: ILens<T, U>, f: Isomorphism<U, V>): Lens<T, V> {
     return Lens.of({
       get: (o: T) => f.to(l.get(o)),
-      set(o, v) {
-        return l.set(o, f.from(v));
-      }
+      set: (o, v) => l.set(o, f.from(v))
     });
   }
 
@@ -163,28 +166,36 @@ export interface SafeUpdate {
       K5 extends keyof O[K1][K2][K3][K4]>(o: O, k: K1, k2: K2, k3: K3, k4: K4, k5: K5, v: O[K1][K2][K3][K4][K5]): O;
 }
 
-function performComposedSet(o: any, v: any, lenses: ILens<any, any>[], index: number): any {
-  if (index == lenses.length - 1) {
-    return lenses[index].set(o, v);
-  } else {
-    const inner = lenses[index].get(o);
-    if (inner) {
-      return lenses[index].set(o, performComposedSet(inner, v, lenses, index + 1));
+/** Factory to create monomorphic composed setters */
+function makeComposedSetter() {
+  const performComposedSet = (o: any, v: any, lenses: ILens<any, any>[], index: number) => {
+    if (index == lenses.length - 1) {
+      return lenses[index].set(o, v);
     } else {
-      return o;
+      const inner = lenses[index].get(o);
+      if (inner) {
+        return lenses[index].set(o, performComposedSet(inner, v, lenses, index + 1));
+      } else {
+        return o;
+      }
     }
   }
+  return performComposedSet;
 }
 
-function performUpdate(o: any, v: any, keys: string[], idx: number, last: number): any {
-  const copy = {...o};
-  if (idx == last) {
-    copy[keys[idx]] = v;
-    return copy;
-  } else {
-    copy[keys[idx]] = performUpdate(o[keys[idx]], v, keys, idx+1, last);
-    return copy;
+/** Factory to create monomorphic updaters */
+function makeUpdater() {
+  const performUpdate = (o: any, v: any, keys: string[], idx: number, last: number) => {
+    const copy = {...o};
+    if (idx == last) {
+      copy[keys[idx]] = v;
+      return copy;
+    } else {
+      copy[keys[idx]] = performUpdate(o[keys[idx]], v, keys, idx+1, last);
+      return copy;
+    }
   }
+  return performUpdate;
 }
 
 export class LensFactory<O> {
@@ -202,11 +213,15 @@ export class LensFactory<O> {
     K3 extends keyof O[K][K2],
     K4 extends keyof O[K][K2][K3]>(k: K, k2: K2, k3: K3, k4: K4): Lens<O, O[K][K2][K3][K4]>;
   prop(...ks: string[]): Lens<any, any> {
+    let performUpdate: any;
     return Lens.of({
       get(o: O) {
         return ks.reduce((x, k) => (x as any)[k], o);
       },
       set(o: O, v: any) {
+        if (performUpdate === undefined) {
+          performUpdate = makeUpdater();
+        }
         return performUpdate(o, v, ks, 0, ks.length - 1);
       }
     });
