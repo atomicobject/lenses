@@ -1,6 +1,6 @@
 {
   "name": "@atomic-object/lenses",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "A lens library for TypeScript",
   "repository": "https://github.com/atomicobject/lenses",
   "author": "Atomic Object",
