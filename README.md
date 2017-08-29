@@ -146,4 +146,4 @@ We also provide a type for Prisms, which are lenses for which `get` may fail, re
 
 ## Functional array helpers
 
-`@atomicobject/lenses/arrays` provides functional versions of `splice`, `pop`, `push`, `unshift`, and `shift`, as well as an `index` function which returns a `Prism` for read/writing an arbitrary index in an array.
+`@atomicobject/lenses/lib/arrays` provides functional versions of `splice`, `pop`, `push`, `unshift`, and `shift`, as well as an `index` function which returns a `Prism` for read/writing an arbitrary index in an array.
