@@ -63,16 +63,15 @@ export namespace Prism {
       return spec.get(o);
     };
 
-    func.get = spec.get;
-    (func as any).set = (tOrV: T|V, v?: V) => {
-      if (v === undefined) {
+    const set = function(tOrV: T|V, v?: V) {
+      if (arguments.length === 1) {
         return (t:T) => spec.set(t, <V>tOrV);
       } else {
-        return spec.set(<T>tOrV, v);
+        return spec.set(<T>tOrV, v!);
       }
     }
 
-    (func as any).update = (tOrFn: T|Function, f?: Function) => {
+    const update = (tOrFn: T|Function, f?: Function) => {
       if (f === undefined) {
         return (t:T) => func.update(t, <any>tOrFn);
       } else {
@@ -86,9 +85,13 @@ export namespace Prism {
       }
     }
 
-    (func as any).comp = (...prisms: any[]) => 
+    const comp = (...prisms: any[]) => 
       (Prism.comp as any)(func, ...prisms);
 
+    (func as any).get = spec.get;
+    (func as any).set = set;
+    (func as any).update = update;
+    (func as any).comp = comp;
     return <Prism<T,V>>func;
   }
 
