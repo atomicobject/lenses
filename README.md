@@ -76,7 +76,7 @@ We can create a lens for the `something` property, and compose it with our other
 let innerFoo = Lens.from<ContainsSomething>()
   .prop("something")
   .comp(Something.foo);
-expect(containerFoo(container)).toEqual(19);
+expect(innerFoo(container)).toEqual(19);
 ```
 
 Users of our `innerFoo` lens don't need to couple themselves to either the location of `Something` within `ContainsSomething`, nor the location of the logical value of `foo` within it. We're completely free to reorganize our data structure, provided all users of it are programmed to lenses.
