@@ -48,6 +48,8 @@ export interface Prism<T,V> {
 
   update(fn: (v:V | undefined) => V | undefined): (t:T) => T;
   update(t:T, fn: (v:V | undefined) => V | undefined): T;
+
+  comp<V2>(l: Prism.Prismish<V, V2>): Prism<T, V2>;
 }
 
 /** A mapping to/from one type to another. Used with the `map` function to create a lens that operates on one type via another. */
