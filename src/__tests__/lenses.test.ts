@@ -274,5 +274,26 @@ describe("Prism", () => {
       expect(composed.get(empty)).toBeUndefined();
       expect(composed.set(empty, 1)).toEqual({ array: [] });
     });
+
+    it("can be used fluently", () => {
+        interface Inner {
+          prop: number;
+        }
+
+        const arr: Inner[] = [{prop: 1}];
+
+        const p0 = arrayIndex<Inner>(0);
+        const lProp = Lens.from<Inner>().prop("prop");
+
+        const composed = p0.comp(lProp);
+        expect(composed(arr)).toBe(1);
+        expect(composed.get(arr)).toBe(1);
+        expect(composed.set(arr, 10)).toEqual([{ prop: 10 }]);
+
+        const empty = [];
+        expect(composed(empty)).toBeUndefined();
+        expect(composed.get(empty)).toBeUndefined();
+        expect(composed.set(empty, 1)).toEqual([]);
+    });
   });
 });
