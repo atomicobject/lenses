@@ -25,6 +25,15 @@ describe("Lens", () => {
       expect(lowBitLens.set(11, true)).toBe(11);
     });
 
+    it("preserves subtypes when setting", () => {
+      type Point2D = { x: number; y: number };
+      type Point3D = Point2D & { z: number };
+      const xLens = Lens.from<Point2D>().prop("x");
+      const point3d1: Point3D = { x: 1, y: 2, z: 3 };
+      const updated3d = xLens.set(point3d1, 32);
+      expect(updated3d.z).toEqual(3);
+    });
+
     it("can create a setter by just passing a value", () => {
       expect(lowBitLens.set(false)(11)).toBe(10);
       expect(lowBitLens.set(true)(10)).toBe(11);
@@ -98,7 +107,7 @@ describe("Lens", () => {
     });
 
     it("Supports potentially-undefined values", () => {
-      type Something = { foo: number|undefined; bar: string };
+      type Something = { foo: number | undefined; bar: string };
       const Something = {
         foo: Lens.from<Something>().prop("foo"),
         bar: Lens.from<Something>().prop("bar")
@@ -109,8 +118,9 @@ describe("Lens", () => {
       expect(Something.foo(o)).toBe(1);
 
       expect(Something.foo.set(o, undefined)).toEqual({
-        foo: undefined, bar: "hello"
-      })
+        foo: undefined,
+        bar: "hello"
+      });
     });
 
     it("can update deeply nested structures, type-safely", () => {
@@ -194,6 +204,90 @@ describe("Lens", () => {
         bar: 10
       });
     });
+  });
+});
+
+describe("unmap", () => {
+  it("translates a lens from one type to another via Isomorphism mapping.", () => {
+    type Foo = { foo: number };
+    type Bar = { bar: number };
+
+    let foo2bar: Isomorphism<Foo, Bar> = {
+      to(foo) {
+        return { bar: foo.foo };
+      },
+      from(bar) {
+        return { foo: bar.bar };
+      }
+    };
+
+    const barLens = Lens.from<Bar>().prop("bar");
+    const fooLens = Lens.unmap(foo2bar, barLens);
+
+    expect(fooLens({ foo: 1 })).toEqual(1);
+    expect(fooLens.get({ foo: 1 })).toEqual(1);
+    expect(fooLens.set({ foo: 1 }, 2)).toEqual({ foo: 2 });
+  });
+});
+
+describe("Isomorphism", () => {
+  it("can flip an isomorphism", () => {
+    type Foo = { foo: number };
+    type Bar = { bar: number };
+
+    const foo2bar: Isomorphism<Foo, Bar> = {
+      to(foo) {
+        return { bar: foo.foo };
+      },
+      from(bar) {
+        return { foo: bar.bar };
+      }
+    };
+
+    const bar2foo = Isomorphism.flip(foo2bar);
+    expect(bar2foo.to({ bar: 32 })).toEqual({ foo: 32 });
+    expect(bar2foo.from({ foo: 32 })).toEqual({ bar: 32 });
+
+    const identity = Isomorphism.comp(foo2bar, bar2foo);
+    expect(identity.to({ foo: 32 })).toEqual({ foo: 32 });
+    expect(identity.from({ foo: 32 })).toEqual({ foo: 32 });
+  });
+
+  it("returns an identity isomorphism if you compose an isomorphism with it's flip", () => {
+    type Foo = { foo: number };
+    type Bar = { bar: number };
+
+    const foo2bar: Isomorphism<Foo, Bar> = {
+      to(foo) {
+        return { bar: foo.foo };
+      },
+      from(bar) {
+        return { foo: bar.bar };
+      }
+    };
+
+    const bar2foo = Isomorphism.flip(foo2bar);
+    expect(bar2foo.to({ bar: 32 })).toEqual({ foo: 32 });
+    expect(bar2foo.from({ foo: 32 })).toEqual({ bar: 32 });
+
+    const identity = Isomorphism.comp(foo2bar, bar2foo);
+    expect(identity.to({ foo: 32 })).toEqual({ foo: 32 });
+    expect(identity.from({ foo: 32 })).toEqual({ foo: 32 });
+  });
+
+  it("composes isomorphism", () => {
+    const bool2bit: Isomorphism<boolean, number> = {
+      to: b => (b ? 1 : 0),
+      from: n => (n === 0 ? false : true)
+    };
+    const n2s: Isomorphism<number, string> = {
+      to: (n: number) => n.toString(),
+      from: (s: string) => parseInt(s, 10)
+    };
+
+    const composed = Isomorphism.comp(bool2bit, n2s);
+    expect(composed.to(true)).toEqual("1");
+    expect(composed.from("1")).toEqual(true);
   });
 });
 
